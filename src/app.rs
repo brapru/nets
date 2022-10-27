@@ -1,6 +1,6 @@
 use tui::widgets::TableState;
 
-// use netstat2::{get_sockets_info, AddressFamilyFlags, ProtocolFlags, ProtocolSocketInfo};
+use crate::os::get_all_socket_info;
 
 pub const ITEMS: [&str; 24] = [
     "Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9", "Item10",
@@ -8,13 +8,13 @@ pub const ITEMS: [&str; 24] = [
     "Item20", "Item21", "Item22", "Item23", "Item24",
 ];
 
-pub struct StatefulTable<'a> {
+pub struct StatefulTable {
     pub state: TableState,
-    pub items: Vec<Vec<&'a str>>,
+    pub items: Vec<Vec<String>>,
 }
 
-impl<'a> StatefulTable<'a> {
-    pub fn with_items(items: Vec<Vec<&'a str>>) -> StatefulTable<'a> {
+impl<'a> StatefulTable {
+    pub fn with_items(items: Vec<Vec<String>>) -> StatefulTable {
         StatefulTable {
             state: TableState::default(),
             items,
@@ -60,58 +60,25 @@ pub struct FilterField {
     pub mode: FilterMode,
 }
 
-pub struct App<'a> {
-    pub title: &'a str,
+pub struct App {
     pub should_quit: bool,
     pub show_connection_info: bool,
     pub filter: FilterField,
-    pub connections: StatefulTable<'a>,
+    pub connections: StatefulTable,
 }
 
-impl<'a> App<'a> {
-    pub fn new(title: &'a str) -> App<'a> {
-        let tasks: Vec<Vec<&str>> = vec![
-            vec![
-                "TCP",
-                "255.255.255.255",
-                "65535",
-                "255.255.255.255",
-                "65535",
-                "ESTABLISHED",
-                "11111",
-                "PROC1",
-            ],
-            vec![
-                "TCP",
-                "255.255.255.255",
-                "65535",
-                "255.255.255.255",
-                "65535",
-                "ESTABLISHED",
-                "22222",
-                "PROC2",
-            ],
-            vec![
-                "TCP",
-                "255.255.255.255",
-                "65535",
-                "255.255.255.255",
-                "65535",
-                "ESTABLISHED",
-                "33333",
-                "PROC3",
-            ],
-        ];
+impl App {
+    pub fn new() -> App {
+        let connections = get_all_socket_info().unwrap();
 
         App {
-            title,
             should_quit: false,
             show_connection_info: false,
             filter: FilterField {
                 input: String::new(),
                 mode: FilterMode::Normal,
             },
-            connections: StatefulTable::with_items(tasks),
+            connections: StatefulTable::with_items(connections),
         }
     }
 

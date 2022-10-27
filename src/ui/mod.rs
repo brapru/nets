@@ -1,3 +1,6 @@
+use crate::app::StatefulTable;
+use crate::os::get_all_socket_info;
+
 use super::app::App;
 use super::app::FilterMode;
 use super::app::ITEMS;
@@ -9,22 +12,9 @@ use tui::{
     Frame,
 };
 
-use crossterm::{
-    event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
-    execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
-};
-
-use std::{
-    error::Error,
-    io,
-    time::{Duration, Instant},
-};
-
 use tui::{
-    backend::{Backend, CrosstermBackend},
+    backend::Backend,
     layout::{Constraint, Direction, Layout, Rect},
-    Terminal,
 };
 
 use unicode_width::UnicodeWidthStr;
@@ -43,85 +33,6 @@ pub fn get_percentage_width(width: u16, percentage: f32) -> u16 {
     let padding = 3;
     let width = width - padding;
     (f32::from(width) * percentage) as u16
-}
-
-pub fn start_ui(tick_rate: Duration) -> Result<(), Box<dyn Error>> {
-    enable_raw_mode()?;
-
-    let mut stdout = io::stdout();
-
-    execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
-
-    let backend = CrosstermBackend::new(stdout);
-    let mut terminal = Terminal::new(backend)?;
-
-    // create app and run it
-    let app = App::new("nets");
-    let res = start_ui_loop(&mut terminal, app, tick_rate);
-
-    // restore terminal
-    disable_raw_mode()?;
-
-    execute!(
-        terminal.backend_mut(),
-        LeaveAlternateScreen,
-        DisableMouseCapture
-    )?;
-
-    terminal.show_cursor()?;
-
-    if let Err(err) = res {
-        println!("{:?}", err)
-    }
-
-    Ok(())
-}
-
-fn start_ui_loop<B: Backend>(
-    terminal: &mut Terminal<B>,
-    mut app: App,
-    tick_rate: Duration,
-) -> io::Result<()> {
-    let last_tick = Instant::now();
-
-    loop {
-        terminal.draw(|f| draw_ui(f, &mut app))?;
-
-        let timeout = tick_rate
-            .checked_sub(last_tick.elapsed())
-            .unwrap_or_else(|| Duration::from_secs(0));
-
-        if crossterm::event::poll(timeout)? {
-            if let Event::Key(key) = event::read()? {
-                match app.filter.mode {
-                    FilterMode::Normal => match key.code {
-                        KeyCode::Char(c) => app.on_key(c),
-                        KeyCode::Up => app.on_up(),
-                        KeyCode::Down => app.on_down(),
-                        _ => {}
-                    },
-                    FilterMode::Typing => match key.code {
-                        // FIXME: This should apply the filter
-                        KeyCode::Enter => {}
-                        KeyCode::Char(c) => {
-                            app.filter.input.push(c);
-                        }
-                        KeyCode::Backspace => {
-                            app.filter.input.pop();
-                        }
-                        KeyCode::Esc => {
-                            app.filter.mode = FilterMode::Normal;
-                        }
-                        _ => {}
-                    },
-                }
-            }
-        }
-
-        if app.should_quit {
-            return Ok(());
-        }
-    }
 }
 
 pub fn draw_ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
@@ -265,6 +176,8 @@ where
     let formatted_header = Row::new(header.items.iter().map(|h| h.text))
         .style(Style::default().add_modifier(Modifier::BOLD));
 
+    app.connections.items = get_all_socket_info().unwrap();
+
     let rows = app.connections.items.iter().map(|item| {
         let height = item
             .iter()
@@ -272,7 +185,7 @@ where
             .max()
             .unwrap_or(0)
             + 1;
-        let cells = item.iter().map(|c| Cell::from(*c));
+        let cells = item.iter().map(|c| Cell::from(c.clone()));
         Row::new(cells).height(height as u16).bottom_margin(0)
     });
 
