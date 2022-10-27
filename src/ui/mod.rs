@@ -1,4 +1,3 @@
-use crate::app::StatefulTable;
 use crate::os::get_all_socket_info;
 
 use super::app::App;
