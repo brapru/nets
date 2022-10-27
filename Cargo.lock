@@ -101,6 +101,7 @@ dependencies = [
  "crossterm",
  "netstat2",
  "tui",
+ "unicode-width",
 ]
 
 [[package]]
