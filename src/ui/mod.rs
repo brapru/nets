@@ -85,7 +85,7 @@ fn start_ui_loop<B: Backend>(
     let last_tick = Instant::now();
 
     loop {
-        terminal.draw(|f| draw(f, &mut app))?;
+        terminal.draw(|f| draw_ui(f, &mut app))?;
 
         let timeout = tick_rate
             .checked_sub(last_tick.elapsed())
@@ -124,7 +124,7 @@ fn start_ui_loop<B: Backend>(
     }
 }
 
-pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
+pub fn draw_ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints(
