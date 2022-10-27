@@ -35,6 +35,8 @@ pub fn get_percentage_width(width: u16, percentage: f32) -> u16 {
 }
 
 pub fn draw_ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
+    app.connections.items = get_all_socket_info().unwrap();
+
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints(
@@ -174,8 +176,6 @@ where
 
     let formatted_header = Row::new(header.items.iter().map(|h| h.text))
         .style(Style::default().add_modifier(Modifier::BOLD));
-
-    app.connections.items = get_all_socket_info().unwrap();
 
     let rows = app.connections.items.iter().map(|item| {
         let height = item
