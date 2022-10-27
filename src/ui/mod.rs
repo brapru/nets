@@ -282,13 +282,13 @@ where
         .map(|h| Constraint::Length(h.width))
         .collect::<Vec<tui::layout::Constraint>>();
 
-    let t = Table::new(rows)
+    let table = Table::new(rows)
         .header(formatted_header)
         .block(Block::default().borders(Borders::ALL).title("Connections"))
         .highlight_style(selected_style)
         .widths(&widths);
 
-    f.render_stateful_widget(t, area, &mut app.connections.state);
+    f.render_stateful_widget(table, area, &mut app.connections.state);
 }
 
 fn draw_connection_info_table<B>(f: &mut Frame<B>, app: &mut App, area: Rect)
