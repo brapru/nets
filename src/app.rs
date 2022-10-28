@@ -208,6 +208,9 @@ impl App {
                 self.filter.mode = FilterMode::Typing;
             }
             'h' => {
+                if self.is_paused() {
+                    return;
+                }
                 self.on_left();
             }
             'j' => {
@@ -217,6 +220,9 @@ impl App {
                 self.on_up();
             }
             'l' => {
+                if self.is_paused() {
+                    return;
+                }
                 self.on_right();
             }
             'p' => {
