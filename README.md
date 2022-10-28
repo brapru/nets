@@ -11,3 +11,4 @@ More to come!
 - [ ] Apply the filtering mechanism
 	- [ ] Add a filtering status that shows status/results of the regex query
 - [ ] Add general statistics at the top (e.g. overall connection count)
+- [ ] Add pause functionality
