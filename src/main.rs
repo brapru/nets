@@ -11,17 +11,14 @@ use crossterm::{
 };
 
 use std::io;
-use std::{
-    sync::Arc,
-    time::{Duration, Instant},
-};
+use std::{sync::Arc, time::Duration};
 use tokio::sync::Mutex;
 use tui::{backend::CrosstermBackend, Terminal};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // FIXME: Add cli arguments to take a tick rate
-    let tick_rate = Duration::from_millis(1000);
+    let tick_rate = Duration::from_millis(250);
 
     let app = Arc::new(Mutex::new(App::new()));
 
@@ -43,18 +40,12 @@ async fn try_main(
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
-    let last_tick = Instant::now();
-
     loop {
         let mut app = app.lock().await;
 
         terminal.draw(|f| ui::draw_ui(f, &mut app))?;
 
-        let timeout = tick_rate
-            .checked_sub(last_tick.elapsed())
-            .unwrap_or_else(|| Duration::from_secs(0));
-
-        if crossterm::event::poll(timeout)? {
+        if crossterm::event::poll(tick_rate)? {
             if let Event::Key(key) = event::read()? {
                 match app.filter.mode {
                     FilterMode::Normal => match key.code {
