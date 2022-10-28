@@ -178,13 +178,17 @@ where
         .style(Style::default().add_modifier(Modifier::BOLD));
 
     let rows = app.connections.items.iter().map(|item| {
-        let height = item
+        let printable = item.make_printable_string();
+
+        let height = printable
             .iter()
             .map(|content| content.chars().filter(|c| *c == '\n').count())
             .max()
             .unwrap_or(0)
             + 1;
-        let cells = item.iter().map(|c| Cell::from(c.clone()));
+
+        let cells = printable.iter().map(|c| Cell::from(c.clone()));
+
         Row::new(cells).height(height as u16).bottom_margin(0)
     });
 

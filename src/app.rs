@@ -52,11 +52,11 @@ impl SocketInfoWithProcName {
 
 pub struct StatefulTable {
     pub state: TableState,
-    pub items: Vec<Vec<String>>,
+    pub items: Vec<SocketInfoWithProcName>,
 }
 
-impl<'a> StatefulTable {
-    pub fn with_items(items: Vec<Vec<String>>) -> StatefulTable {
+impl StatefulTable {
+    pub fn with_items(items: Vec<SocketInfoWithProcName>) -> StatefulTable {
         StatefulTable {
             state: TableState::default(),
             items,
@@ -115,12 +115,6 @@ impl App {
     pub fn new() -> App {
         let mut initial_connections = get_all_socket_info().unwrap();
         initial_connections.sort_by(|a, b| a.local_port.cmp(&b.local_port).reverse());
-
-        let printable = initial_connections
-            .iter()
-            .map(|f| f.make_printable_string())
-            .collect::<Vec<Vec<String>>>();
-
         App {
             should_quit: false,
             show_connection_info: false,
@@ -129,21 +123,16 @@ impl App {
                 input: String::new(),
                 mode: FilterMode::Normal,
             },
-            connections: StatefulTable::with_items(printable),
+            connections: StatefulTable::with_items(initial_connections),
             socket_info: Vec::new(),
         }
     }
 
     pub fn update_connections(&mut self) {
-        let mut initial_connections = get_all_socket_info().unwrap();
-        initial_connections.sort_by(|a, b| a.local_port.cmp(&b.local_port).reverse());
+        let mut updated = get_all_socket_info().unwrap();
+        updated.sort_by(|a, b| a.local_port.cmp(&b.local_port).reverse());
 
-        let printable = initial_connections
-            .iter()
-            .map(|f| f.make_printable_string())
-            .collect::<Vec<Vec<String>>>();
-
-        self.connections.items = printable;
+        self.connections.items = updated;
     }
 
     pub fn is_paused(&self) -> bool {
