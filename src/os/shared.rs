@@ -13,12 +13,13 @@ pub fn get_proc_name(pid: u32) -> String {
         Err(_) => String::from("-"),
     }
 }
-pub fn get_all_socket_info() -> Result<Vec<SocketInfoWithProcName>, Box<dyn std::error::Error>> {
+pub fn get_all_socket_info(
+    protocol: ProtocolFlags,
+) -> Result<Vec<SocketInfoWithProcName>, Box<dyn std::error::Error>> {
     let mut open_sockets: Vec<SocketInfoWithProcName> = Vec::new();
 
     let af_flags = AddressFamilyFlags::IPV4 | AddressFamilyFlags::IPV6;
-    let proto_flags = ProtocolFlags::TCP | ProtocolFlags::UDP;
-    let sockets_info = get_sockets_info(af_flags, proto_flags)?;
+    let sockets_info = get_sockets_info(af_flags, protocol)?;
 
     for mut si in sockets_info {
         match &si.protocol_socket_info {

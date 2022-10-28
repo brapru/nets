@@ -1,7 +1,7 @@
-use netstat2::SocketInfo;
+use netstat2::{ProtocolFlags, SocketInfo};
 use tui::widgets::TableState;
 
-use std::net::IpAddr;
+use std::{collections::HashMap, net::IpAddr};
 
 use crate::os::get_all_socket_info;
 
@@ -92,6 +92,37 @@ impl StatefulTable {
     }
 }
 
+pub struct StatefulTabItem {
+    pub title: String,
+    pub protocol: ProtocolFlags,
+}
+
+pub struct StatefulTabs {
+    pub items: Vec<StatefulTabItem>,
+    pub index: usize,
+}
+
+impl<'a> StatefulTabs {
+    pub fn with_items(items: Vec<StatefulTabItem>) -> StatefulTabs {
+        StatefulTabs { items, index: 0 }
+    }
+    pub fn next(&mut self) {
+        self.index = (self.index + 1) % self.items.len();
+    }
+
+    pub fn previous(&mut self) {
+        if self.index > 0 {
+            self.index -= 1;
+        } else {
+            self.index = self.items.len() - 1;
+        }
+    }
+
+    pub fn selected_protocol(&self) -> ProtocolFlags {
+        self.items[self.index].protocol
+    }
+}
+
 pub enum FilterMode {
     Normal,
     Typing,
@@ -106,6 +137,7 @@ pub struct App {
     pub should_quit: bool,
     pub show_connection_info: bool,
     pub filter: FilterField,
+    pub tabs: StatefulTabs,
     pub connections: StatefulTable,
     pub socket_info: Vec<SocketInfoWithProcName>,
     is_paused: bool,
@@ -113,7 +145,8 @@ pub struct App {
 
 impl App {
     pub fn new() -> App {
-        let mut initial_connections = get_all_socket_info().unwrap();
+        let mut initial_connections =
+            get_all_socket_info(ProtocolFlags::TCP | ProtocolFlags::UDP).unwrap();
         initial_connections.sort_by(|a, b| a.local_port.cmp(&b.local_port).reverse());
         App {
             should_quit: false,
@@ -123,13 +156,27 @@ impl App {
                 input: String::new(),
                 mode: FilterMode::Normal,
             },
+            tabs: StatefulTabs::with_items(vec![
+                StatefulTabItem {
+                    title: String::from("All"),
+                    protocol: ProtocolFlags::TCP | ProtocolFlags::UDP,
+                },
+                StatefulTabItem {
+                    title: String::from("TCP"),
+                    protocol: ProtocolFlags::TCP,
+                },
+                StatefulTabItem {
+                    title: String::from("UDP"),
+                    protocol: ProtocolFlags::UDP,
+                },
+            ]),
             connections: StatefulTable::with_items(initial_connections),
             socket_info: Vec::new(),
         }
     }
 
     pub fn update_connections(&mut self) {
-        let mut updated = get_all_socket_info().unwrap();
+        let mut updated = get_all_socket_info(self.tabs.selected_protocol()).unwrap();
         updated.sort_by(|a, b| a.local_port.cmp(&b.local_port).reverse());
 
         self.connections.items = updated;
@@ -147,16 +194,30 @@ impl App {
         self.connections.next();
     }
 
+    pub fn on_left(&mut self) {
+        self.tabs.previous();
+    }
+
+    pub fn on_right(&mut self) {
+        self.tabs.next();
+    }
+
     pub fn on_key(&mut self, c: char) {
         match c {
             '/' => {
                 self.filter.mode = FilterMode::Typing;
+            }
+            'h' => {
+                self.on_left();
             }
             'j' => {
                 self.on_down();
             }
             'k' => {
                 self.on_up();
+            }
+            'l' => {
+                self.on_right();
             }
             'p' => {
                 self.is_paused = !self.is_paused;

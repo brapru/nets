@@ -2,10 +2,11 @@ use super::app::App;
 use super::app::FilterMode;
 use super::app::ITEMS;
 
+use tui::layout::Alignment;
 use tui::{
     style::{Color, Modifier, Style},
     text::{Span, Spans, Text},
-    widgets::{Block, Borders, Cell, List, ListItem, Paragraph, Row, Table},
+    widgets::{Block, Borders, Cell, List, ListItem, Paragraph, Row, Table, Tabs},
     Frame,
 };
 
@@ -91,6 +92,15 @@ fn draw_filter_field<B>(f: &mut Frame<B>, app: &mut App, area: Rect)
 where
     B: Backend,
 {
+    let chunks = Layout::default()
+        .constraints([
+            Constraint::Percentage(75),
+            Constraint::Percentage(12),
+            Constraint::Percentage(12),
+        ])
+        .direction(Direction::Horizontal)
+        .split(area);
+
     let input = Paragraph::new(app.filter.input.as_ref())
         .style(match app.filter.mode {
             FilterMode::Normal => Style::default(),
@@ -98,15 +108,43 @@ where
         })
         .block(Block::default().borders(Borders::ALL).title("Filter"));
 
-    f.render_widget(input, area);
+    f.render_widget(input, chunks[0]);
 
     match app.filter.mode {
         FilterMode::Normal => {}
 
-        FilterMode::Typing => {
-            f.set_cursor(area.x + app.filter.input.width() as u16 + 1, area.y + 1)
-        }
+        FilterMode::Typing => f.set_cursor(
+            chunks[0].x + app.filter.input.width() as u16 + 1,
+            chunks[0].y + 1,
+        ),
     }
+
+    let tab_titles = app
+        .tabs
+        .items
+        .iter()
+        .map(|tab| Spans::from(Span::styled(tab.title.clone(), Style::default())))
+        .collect();
+
+    let tabs = Tabs::new(tab_titles)
+        .block(Block::default().borders(Borders::ALL).title("View"))
+        .highlight_style(Style::default().add_modifier(Modifier::BOLD))
+        .select(app.tabs.index);
+
+    f.render_widget(tabs, chunks[1]);
+
+    let block = Block::default()
+        .title(Span::styled("Status", Style::default()))
+        .borders(Borders::ALL)
+        .border_style(Style::default());
+
+    let lines = Text::from("FIXME");
+    let help = Paragraph::new(lines)
+        .block(block)
+        .alignment(Alignment::Center)
+        .style(Style::default());
+
+    f.render_widget(help, chunks[2]);
 }
 
 fn draw_connections<B>(f: &mut Frame<B>, app: &mut App, area: Rect)

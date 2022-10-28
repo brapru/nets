@@ -62,6 +62,9 @@ async fn try_main(
                         KeyCode::Char(c) => app.on_key(c),
                         KeyCode::Up => app.on_up(),
                         KeyCode::Down => app.on_down(),
+                        KeyCode::Left => app.on_left(),
+                        KeyCode::Right => app.on_right(),
+                        KeyCode::Tab => app.on_right(),
                         _ => {}
                     },
                     FilterMode::Typing => match key.code {
