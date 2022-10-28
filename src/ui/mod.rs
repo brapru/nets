@@ -33,7 +33,9 @@ pub fn get_percentage_width(width: u16, percentage: f32) -> u16 {
 }
 
 pub fn draw_ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
-    app.update_connections();
+    if !app.is_paused() {
+        app.update_connections();
+    }
 
     let chunks = Layout::default()
         .direction(Direction::Vertical)

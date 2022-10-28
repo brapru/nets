@@ -108,6 +108,7 @@ pub struct App {
     pub filter: FilterField,
     pub connections: StatefulTable,
     pub socket_info: Vec<SocketInfoWithProcName>,
+    is_paused: bool,
 }
 
 impl App {
@@ -123,6 +124,7 @@ impl App {
         App {
             should_quit: false,
             show_connection_info: false,
+            is_paused: false,
             filter: FilterField {
                 input: String::new(),
                 mode: FilterMode::Normal,
@@ -144,6 +146,10 @@ impl App {
         self.connections.items = printable;
     }
 
+    pub fn is_paused(&self) -> bool {
+        self.is_paused
+    }
+
     pub fn on_up(&mut self) {
         self.connections.previous();
     }
@@ -162,6 +168,9 @@ impl App {
             }
             'k' => {
                 self.on_up();
+            }
+            'p' => {
+                self.is_paused = !self.is_paused;
             }
             'q' => {
                 self.should_quit = true;
