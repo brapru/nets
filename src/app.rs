@@ -1,4 +1,7 @@
+use netstat2::SocketInfo;
 use tui::widgets::TableState;
+
+use std::net::IpAddr;
 
 use crate::os::get_all_socket_info;
 
@@ -7,6 +10,45 @@ pub const ITEMS: [&str; 24] = [
     "Item11", "Item12", "Item13", "Item14", "Item15", "Item16", "Item17", "Item18", "Item19",
     "Item20", "Item21", "Item22", "Item23", "Item24",
 ];
+
+pub struct SocketInfoWithProcName {
+    pub info: SocketInfo,
+    pub protocol: String,
+    pub local_addr: IpAddr,
+    pub local_port: u16,
+    pub remote_addr: Option<IpAddr>,
+    pub remote_port: Option<u16>,
+    pub state: Option<String>,
+    pub pid: u32,
+    pub process_name: String,
+}
+
+impl SocketInfoWithProcName {
+    pub fn make_printable_string(&self) -> Vec<String> {
+        vec![
+            match &self.local_addr.is_ipv4() {
+                true => self.protocol.clone() + "4",
+                _ => self.protocol.clone() + "6",
+            },
+            self.local_addr.to_string(),
+            self.local_port.to_string(),
+            match self.remote_addr {
+                Some(addr) => addr.to_string(),
+                None => String::from(""),
+            },
+            match self.remote_port {
+                Some(port) => port.to_string(),
+                None => String::from(""),
+            },
+            match &self.state {
+                Some(state) => state.to_string(),
+                None => String::from(""),
+            },
+            self.pid.to_string(),
+            self.process_name.clone(),
+        ]
+    }
+}
 
 pub struct StatefulTable {
     pub state: TableState,
@@ -65,11 +107,18 @@ pub struct App {
     pub show_connection_info: bool,
     pub filter: FilterField,
     pub connections: StatefulTable,
+    pub socket_info: Vec<SocketInfoWithProcName>,
 }
 
 impl App {
     pub fn new() -> App {
-        let connections = get_all_socket_info().unwrap();
+        let mut initial_connections = get_all_socket_info().unwrap();
+        initial_connections.sort_by(|a, b| a.local_port.cmp(&b.local_port).reverse());
+
+        let printable = initial_connections
+            .iter()
+            .map(|f| f.make_printable_string())
+            .collect::<Vec<Vec<String>>>();
 
         App {
             should_quit: false,
@@ -78,8 +127,21 @@ impl App {
                 input: String::new(),
                 mode: FilterMode::Normal,
             },
-            connections: StatefulTable::with_items(connections),
+            connections: StatefulTable::with_items(printable),
+            socket_info: Vec::new(),
         }
+    }
+
+    pub fn update_connections(&mut self) {
+        let mut initial_connections = get_all_socket_info().unwrap();
+        initial_connections.sort_by(|a, b| a.local_port.cmp(&b.local_port).reverse());
+
+        let printable = initial_connections
+            .iter()
+            .map(|f| f.make_printable_string())
+            .collect::<Vec<Vec<String>>>();
+
+        self.connections.items = printable;
     }
 
     pub fn on_up(&mut self) {

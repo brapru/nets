@@ -5,7 +5,8 @@ A cross-platform network connection tui.
 More to come!
 
 ## TODO
-- [ ] Handle all TCP4, TCP6, UDP4, UDP6
+- [x] Handle all TCP4, TCP6, UDP4, UDP6
+- [ ] Create seperate tabs for All, TCP, and UDP
 - [ ] Draw the help box
 - [ ] Complete and draw the connection information box
 - [ ] Apply the filtering mechanism

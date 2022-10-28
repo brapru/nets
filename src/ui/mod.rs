@@ -1,5 +1,3 @@
-use crate::os::get_all_socket_info;
-
 use super::app::App;
 use super::app::FilterMode;
 use super::app::ITEMS;
@@ -35,7 +33,7 @@ pub fn get_percentage_width(width: u16, percentage: f32) -> u16 {
 }
 
 pub fn draw_ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
-    app.connections.items = get_all_socket_info().unwrap();
+    app.update_connections();
 
     let chunks = Layout::default()
         .direction(Direction::Vertical)
