@@ -21,23 +21,33 @@ pub fn get_all_socket_info() -> Result<Vec<Vec<String>>, Box<dyn std::error::Err
     for mut si in sockets_info {
         match si.protocol_socket_info {
             ProtocolSocketInfo::Tcp(tcp_si) => {
-                let mut socket = Vec::new();
-                socket.push(String::from("tcp"));
-                socket.push(tcp_si.local_addr.to_string());
-                socket.push(tcp_si.local_port.to_string());
-                socket.push(tcp_si.remote_addr.to_string());
-                socket.push(tcp_si.remote_port.to_string());
-
-                socket.push(tcp_si.state.to_string());
-
-                socket.push(si.associated_pids.clone().pop().unwrap().to_string());
-
-                let name = get_proc_name(si.associated_pids.pop().unwrap());
-                socket.push(name);
+                let socket = vec![
+                    String::from("tcp"),
+                    tcp_si.local_addr.to_string(),
+                    tcp_si.local_port.to_string(),
+                    tcp_si.remote_addr.to_string(),
+                    tcp_si.remote_port.to_string(),
+                    tcp_si.state.to_string(),
+                    si.associated_pids.clone().pop().unwrap().to_string(),
+                    get_proc_name(si.associated_pids.pop().unwrap()),
+                ];
 
                 open_sockets.push(socket);
             }
-            ProtocolSocketInfo::Udp(udp_si) => {}
+            ProtocolSocketInfo::Udp(udp_si) => {
+                let socket = vec![
+                    String::from("udp"),
+                    udp_si.local_addr.to_string(),
+                    udp_si.local_port.to_string(),
+                    String::from("-"),
+                    String::from("-"),
+                    String::from("-"),
+                    si.associated_pids.clone().pop().unwrap().to_string(),
+                    get_proc_name(si.associated_pids.pop().unwrap()),
+                ];
+
+                open_sockets.push(socket);
+            }
         }
     }
 
