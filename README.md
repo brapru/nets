@@ -8,6 +8,7 @@ More to come!
 - [ ] Draw the help box
 - [ ] Complete and draw the connection information box
 - [ ] Add a filtering status that shows status/results of the regex query and the status of information query
+- [ ] Add highlighting for filtering match
 - [ ] Add general statistics at the top (e.g. overall connection count)
 - [ ] Add Linux support
 - [ ] Add Windows support
