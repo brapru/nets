@@ -208,7 +208,7 @@ impl App {
     }
 
     pub fn update_regex(&mut self) {
-        self.filter.regex = Some(Regex::new(self.filter.input.as_str()).unwrap());
+        self.filter.regex = Some(Regex::new(&regex::escape(&self.filter.input)).unwrap());
     }
 
     pub fn is_paused(&self) -> bool {
