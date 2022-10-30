@@ -216,7 +216,7 @@ where
         .style(Style::default().add_modifier(Modifier::BOLD));
 
     let rows = app.connections.items.iter().map(|item| {
-        let printable = item.make_printable_string();
+        let printable = &item.printable_string;
 
         let height = printable
             .iter()

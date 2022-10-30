@@ -75,14 +75,20 @@ async fn try_main(
                     },
                     FilterMode::Typing => match key.code {
                         // FIXME: This should apply the filter
-                        KeyCode::Enter => {}
+                        KeyCode::Enter => {
+                            app.update_regex();
+                            app.filter.mode = FilterMode::Normal;
+                        }
                         KeyCode::Char(c) => {
                             app.filter.input.push(c);
+                            app.update_regex();
                         }
                         KeyCode::Backspace => {
                             app.filter.input.pop();
+                            app.update_regex();
                         }
                         KeyCode::Esc => {
+                            app.update_regex();
                             app.filter.mode = FilterMode::Normal;
                         }
                         _ => {}

@@ -1,7 +1,6 @@
-use netstat2::{ProtocolFlags, SocketInfo};
+use netstat2::{ProtocolFlags, ProtocolSocketInfo, SocketInfo};
+use regex::Regex;
 use tui::widgets::TableState;
-
-use std::{collections::HashMap, net::IpAddr};
 
 use crate::os::get_all_socket_info;
 
@@ -13,40 +12,58 @@ pub const ITEMS: [&str; 24] = [
 
 pub struct SocketInfoWithProcName {
     pub info: SocketInfo,
-    pub protocol: String,
-    pub local_addr: IpAddr,
-    pub local_port: u16,
-    pub remote_addr: Option<IpAddr>,
-    pub remote_port: Option<u16>,
-    pub state: Option<String>,
-    pub pid: u32,
     pub process_name: String,
+    pub printable_string: Vec<String>,
 }
 
 impl SocketInfoWithProcName {
-    pub fn make_printable_string(&self) -> Vec<String> {
-        vec![
-            match &self.local_addr.is_ipv4() {
-                true => self.protocol.clone() + "4",
-                _ => self.protocol.clone() + "6",
+    pub fn new(info: SocketInfo, name: String) -> SocketInfoWithProcName {
+        match &info.protocol_socket_info {
+            ProtocolSocketInfo::Tcp(tcp_si) => SocketInfoWithProcName {
+                info: info.clone(),
+                process_name: name.clone(),
+                printable_string: vec![
+                    match tcp_si.local_addr.is_ipv4() {
+                        true => String::from("tcp4"),
+                        _ => String::from("tcp6"),
+                    },
+                    tcp_si.local_addr.to_string(),
+                    tcp_si.local_port.to_string(),
+                    tcp_si.remote_addr.to_string(),
+                    tcp_si.remote_port.to_string(),
+                    tcp_si.state.to_string(),
+                    info.associated_pids.clone().pop().unwrap().to_string(),
+                    name.clone(),
+                ],
             },
-            self.local_addr.to_string(),
-            self.local_port.to_string(),
-            match self.remote_addr {
-                Some(addr) => addr.to_string(),
-                None => String::from(""),
+            ProtocolSocketInfo::Udp(udp_si) => SocketInfoWithProcName {
+                info: info.clone(),
+                process_name: name.clone(),
+                printable_string: vec![
+                    match udp_si.local_addr.is_ipv4() {
+                        true => String::from("udp4"),
+                        _ => String::from("udp6"),
+                    },
+                    udp_si.local_addr.to_string(),
+                    udp_si.local_port.to_string(),
+                    String::from(""),
+                    String::from(""),
+                    String::from(""),
+                    info.associated_pids.clone().pop().unwrap().to_string(),
+                    name.clone(),
+                ],
             },
-            match self.remote_port {
-                Some(port) => port.to_string(),
-                None => String::from(""),
-            },
-            match &self.state {
-                Some(state) => state.to_string(),
-                None => String::from(""),
-            },
-            self.pid.to_string(),
-            self.process_name.clone(),
-        ]
+        }
+    }
+
+    pub fn should_print(&self, regex: &Option<Regex>) -> bool {
+        if regex.is_none() {
+            return true;
+        }
+
+        self.printable_string
+            .iter()
+            .any(|cell| regex.as_ref().unwrap().is_match(cell))
     }
 }
 
@@ -131,6 +148,7 @@ pub enum FilterMode {
 pub struct FilterField {
     pub input: String,
     pub mode: FilterMode,
+    pub regex: Option<Regex>,
 }
 
 pub struct App {
@@ -140,6 +158,7 @@ pub struct App {
     pub tabs: StatefulTabs,
     pub connections: StatefulTable,
     pub socket_info: Vec<SocketInfoWithProcName>,
+    pub printable_lines: Vec<Vec<String>>,
     is_paused: bool,
 }
 
@@ -147,7 +166,8 @@ impl App {
     pub fn new() -> App {
         let mut initial_connections =
             get_all_socket_info(ProtocolFlags::TCP | ProtocolFlags::UDP).unwrap();
-        initial_connections.sort_by(|a, b| a.local_port.cmp(&b.local_port).reverse());
+        initial_connections.sort_by(|a, b| a.info.local_port().cmp(&b.info.local_port()).reverse());
+
         App {
             should_quit: false,
             show_connection_info: false,
@@ -155,6 +175,7 @@ impl App {
             filter: FilterField {
                 input: String::new(),
                 mode: FilterMode::Normal,
+                regex: None,
             },
             tabs: StatefulTabs::with_items(vec![
                 StatefulTabItem {
@@ -172,14 +193,22 @@ impl App {
             ]),
             connections: StatefulTable::with_items(initial_connections),
             socket_info: Vec::new(),
+            printable_lines: Vec::new(),
         }
     }
 
     pub fn update_connections(&mut self) {
         let mut updated = get_all_socket_info(self.tabs.selected_protocol()).unwrap();
-        updated.sort_by(|a, b| a.local_port.cmp(&b.local_port).reverse());
+        updated.sort_by(|a, b| a.info.local_port().cmp(&b.info.local_port()).reverse());
 
-        self.connections.items = updated;
+        self.connections.items = updated
+            .into_iter()
+            .filter(|connection| connection.should_print(&self.filter.regex))
+            .collect();
+    }
+
+    pub fn update_regex(&mut self) {
+        self.filter.regex = Some(Regex::new(self.filter.input.as_str()).unwrap());
     }
 
     pub fn is_paused(&self) -> bool {
