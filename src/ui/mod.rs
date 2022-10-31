@@ -34,9 +34,7 @@ pub fn get_percentage_width(width: u16, percentage: f32) -> u16 {
 }
 
 pub fn draw_ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
-    if !app.is_paused() {
-        app.update_connections();
-    }
+    app.update_connections();
 
     let chunks = Layout::default()
         .direction(Direction::Vertical)
@@ -204,7 +202,7 @@ where
     let formatted_header = Row::new(header.items.iter().map(|h| h.text))
         .style(Style::default().add_modifier(Modifier::BOLD));
 
-    let rows = app.connections.items.iter().map(|item| {
+    let rows = app.connection_table.items.iter().map(|item| {
         let printable = &item.printable_string;
 
         let height = printable
@@ -231,7 +229,7 @@ where
         .highlight_style(selected_style)
         .widths(&widths);
 
-    f.render_stateful_widget(table, area, &mut app.connections.state);
+    f.render_stateful_widget(table, area, &mut app.connection_table.state);
 }
 
 fn draw_connection_info_table<B>(f: &mut Frame<B>, app: &mut App, area: Rect)
@@ -266,13 +264,13 @@ where
     let mut info: Vec<Span> = vec![Span::from("DEFAULT")];
 
     if !app.filter.regex.is_none() {
-        if app.connections.items.is_empty() {
+        if app.connection_table.items.is_empty() {
             // info = Span::styled("No Matches Found", Style::default().fg(Color::Red));
             info = vec![Span::styled("No Matches", Style::default().fg(Color::Red))];
         } else {
             info = vec![
                 Span::styled(
-                    app.connections.items.len().to_string(),
+                    app.connection_table.items.len().to_string(),
                     Style::default().fg(Color::Green),
                 ),
                 Span::from(" Matches"),

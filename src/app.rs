@@ -10,16 +10,19 @@ pub const ITEMS: [&str; 24] = [
     "Item20", "Item21", "Item22", "Item23", "Item24",
 ];
 
+#[derive(Clone)]
 pub struct SocketInfoWithProcName {
     pub info: SocketInfo,
     pub process_name: String,
     pub printable_string: Vec<String>,
+    pub protocol_flags: ProtocolFlags,
 }
 
 impl SocketInfoWithProcName {
     pub fn new(info: SocketInfo, name: String) -> SocketInfoWithProcName {
         match &info.protocol_socket_info {
             ProtocolSocketInfo::Tcp(tcp_si) => SocketInfoWithProcName {
+                protocol_flags: ProtocolFlags::TCP,
                 info: info.clone(),
                 process_name: name.clone(),
                 printable_string: vec![
@@ -37,6 +40,7 @@ impl SocketInfoWithProcName {
                 ],
             },
             ProtocolSocketInfo::Udp(udp_si) => SocketInfoWithProcName {
+                protocol_flags: ProtocolFlags::UDP,
                 info: info.clone(),
                 process_name: name.clone(),
                 printable_string: vec![
@@ -156,8 +160,8 @@ pub struct App {
     pub show_connection_info: bool,
     pub filter: FilterField,
     pub tabs: StatefulTabs,
-    pub connections: StatefulTable,
-    pub socket_info: Vec<SocketInfoWithProcName>,
+    pub connections: Vec<SocketInfoWithProcName>,
+    pub connection_table: StatefulTable,
     pub printable_lines: Vec<Vec<String>>,
     is_paused: bool,
 }
@@ -191,17 +195,29 @@ impl App {
                     protocol: ProtocolFlags::UDP,
                 },
             ]),
-            connections: StatefulTable::with_items(initial_connections),
-            socket_info: Vec::new(),
+            connections: initial_connections.clone(),
+            connection_table: StatefulTable::with_items(initial_connections),
             printable_lines: Vec::new(),
         }
     }
 
     pub fn update_connections(&mut self) {
-        let mut updated = get_all_socket_info(self.tabs.selected_protocol()).unwrap();
-        updated.sort_by(|a, b| a.info.local_port().cmp(&b.info.local_port()).reverse());
+        let mut connections: Vec<SocketInfoWithProcName> = if self.is_paused() {
+            self.connections
+                .clone()
+                .into_iter()
+                .filter(|connection| {
+                    connection.protocol_flags | self.tabs.selected_protocol()
+                        == self.tabs.selected_protocol()
+                })
+                .collect()
+        } else {
+            get_all_socket_info(self.tabs.selected_protocol()).unwrap()
+        };
 
-        self.connections.items = updated
+        connections.sort_by(|a, b| a.info.local_port().cmp(&b.info.local_port()).reverse());
+
+        self.connection_table.items = connections
             .into_iter()
             .filter(|connection| connection.should_print(&self.filter.regex))
             .collect();
@@ -221,11 +237,11 @@ impl App {
     }
 
     pub fn on_up(&mut self) {
-        self.connections.previous();
+        self.connection_table.previous();
     }
 
     pub fn on_down(&mut self) {
-        self.connections.next();
+        self.connection_table.next();
     }
 
     pub fn on_left(&mut self) {
@@ -242,9 +258,6 @@ impl App {
                 self.filter.mode = FilterMode::Typing;
             }
             'h' => {
-                if self.is_paused() {
-                    return;
-                }
                 self.on_left();
             }
             'j' => {
@@ -254,9 +267,6 @@ impl App {
                 self.on_up();
             }
             'l' => {
-                if self.is_paused() {
-                    return;
-                }
                 self.on_right();
             }
             'p' => {
