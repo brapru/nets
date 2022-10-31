@@ -208,6 +208,11 @@ impl App {
     }
 
     pub fn update_regex(&mut self) {
+        if self.filter.input.is_empty() {
+            self.filter.regex = None;
+            return;
+        }
+
         self.filter.regex = Some(Regex::new(&regex::escape(&self.filter.input)).unwrap());
     }
 

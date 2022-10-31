@@ -133,18 +133,7 @@ where
 
     f.render_widget(tabs, chunks[1]);
 
-    let block = Block::default()
-        .title(Span::styled("Status", Style::default()))
-        .borders(Borders::ALL)
-        .border_style(Style::default());
-
-    let lines = Text::from("FIXME");
-    let help = Paragraph::new(lines)
-        .block(block)
-        .alignment(Alignment::Center)
-        .style(Style::default());
-
-    f.render_widget(help, chunks[2]);
+    draw_status(f, app, chunks[2]);
 }
 
 fn draw_connections<B>(f: &mut Frame<B>, app: &mut App, area: Rect)
@@ -263,4 +252,45 @@ where
         .highlight_style(Style::default().add_modifier(Modifier::BOLD));
 
     f.render_widget(connections, area);
+}
+
+fn draw_status<B>(f: &mut Frame<B>, app: &mut App, area: Rect)
+where
+    B: Backend,
+{
+    let block = Block::default()
+        .title(Span::styled("Status", Style::default()))
+        .borders(Borders::ALL)
+        .border_style(Style::default());
+
+    let mut info: Vec<Span> = vec![Span::from("DEFAULT")];
+
+    if !app.filter.regex.is_none() {
+        if app.connections.items.is_empty() {
+            // info = Span::styled("No Matches Found", Style::default().fg(Color::Red));
+            info = vec![Span::styled("No Matches", Style::default().fg(Color::Red))];
+        } else {
+            info = vec![
+                Span::styled(
+                    app.connections.items.len().to_string(),
+                    Style::default().fg(Color::Green),
+                ),
+                Span::from(" Matches"),
+            ];
+        }
+    }
+
+    if app.is_paused() {
+        info.push(Span::styled(
+            " (paused)",
+            Style::default().fg(Color::Yellow),
+        ));
+    }
+
+    let status = Paragraph::new(Spans::from(info))
+        .block(block)
+        .alignment(Alignment::Center)
+        .style(Style::default());
+
+    f.render_widget(status, area);
 }
