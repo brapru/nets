@@ -261,7 +261,7 @@ where
         .borders(Borders::ALL)
         .border_style(Style::default());
 
-    let mut info: Vec<Span> = vec![Span::from("DEFAULT")];
+    let mut info: Vec<Span> = vec![Span::from("Waiting")];
 
     if !app.filter.regex.is_none() {
         if app.connection_table.items.is_empty() {
