@@ -216,6 +216,7 @@ impl App {
         };
 
         connections.sort_by(|a, b| a.info.local_port().cmp(&b.info.local_port()).reverse());
+        self.connections = connections.clone();
 
         self.connection_table.items = connections
             .into_iter()
