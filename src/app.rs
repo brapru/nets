@@ -236,6 +236,10 @@ impl App {
         self.is_paused
     }
 
+    pub fn on_pause(&mut self) {
+        self.is_paused = !self.is_paused;
+    }
+
     pub fn on_up(&mut self) {
         self.connection_table.previous();
     }
@@ -268,12 +272,6 @@ impl App {
             }
             'l' => {
                 self.on_right();
-            }
-            'p' => {
-                self.is_paused = !self.is_paused;
-            }
-            'q' => {
-                self.should_quit = true;
             }
             'i' => {
                 self.show_connection_info = !self.show_connection_info;
