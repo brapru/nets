@@ -202,26 +202,26 @@ impl App {
     }
 
     pub fn update_connections(&mut self) {
-        let mut connections: Vec<SocketInfoWithProcName>;
+        let connections: Vec<SocketInfoWithProcName>;
 
         if self.is_paused() {
-            connections = self
-                .connections
-                .clone()
-                .into_iter()
-                .filter(|connection| {
-                    connection.protocol_flags | self.tabs.selected_protocol()
-                        == self.tabs.selected_protocol()
-                })
-                .collect();
+            connections = self.connections.clone();
         } else {
-            connections = get_all_socket_info(self.tabs.selected_protocol()).unwrap();
+            connections = get_all_socket_info(ProtocolFlags::TCP | ProtocolFlags::UDP).unwrap();
             self.connections = connections.clone();
         };
 
-        connections.sort_by(|a, b| a.info.local_port().cmp(&b.info.local_port()).reverse());
+        let mut filtered: Vec<SocketInfoWithProcName> = connections
+            .into_iter()
+            .filter(|connection| {
+                connection.protocol_flags | self.tabs.selected_protocol()
+                    == self.tabs.selected_protocol()
+            })
+            .collect();
 
-        self.connection_table.items = connections
+        filtered.sort_by(|a, b| a.info.local_port().cmp(&b.info.local_port()).reverse());
+
+        self.connection_table.items = filtered
             .into_iter()
             .filter(|connection| connection.should_print(&self.filter.regex))
             .collect();
