@@ -1,11 +1,14 @@
+use crate::utils::*;
+
 use super::app::App;
 use super::app::FilterMode;
 use super::app::ITEMS;
 
+use netstat2::ProtocolFlags;
 use tui::layout::Alignment;
 use tui::{
     style::{Color, Modifier, Style},
-    text::{Span, Spans, Text},
+    text::{Span, Spans},
     widgets::{Block, Borders, Cell, List, ListItem, Paragraph, Row, Table, Tabs, Wrap},
     Frame,
 };
@@ -48,12 +51,12 @@ pub fn draw_ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
         )
         .split(f.size());
 
-    draw_help(f, app, chunks[0]);
+    draw_header(f, app, chunks[0]);
     draw_filter_field(f, app, chunks[1]);
     draw_connections(f, app, chunks[2]);
 }
 
-fn draw_help<B>(f: &mut Frame<B>, app: &mut App, area: Rect)
+fn draw_header<B>(f: &mut Frame<B>, app: &mut App, area: Rect)
 where
     B: Backend,
 {
@@ -63,27 +66,123 @@ where
         .direction(Direction::Horizontal)
         .split(area);
 
+    let text: Vec<Spans> = vec![
+        // FIXME: There has to be a better way to get new lines printed
+        Spans::from(Span::styled(format!(""), Style::default())),
+        Spans::from(Span::styled(format!(""), Style::default())),
+        Spans::from(Span::styled(format!(""), Style::default())),
+        Spans::from(vec![
+            Span::styled("Total ", Style::default().add_modifier(Modifier::BOLD)),
+            Span::from("Connections "),
+            Span::styled(
+                format!(
+                    "{}",
+                    get_total_sockets_protocol_count(&app, ProtocolFlags::TCP | ProtocolFlags::UDP)
+                ),
+                Style::default()
+                    .fg(Color::Green)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::from(" | Unique "),
+            Span::styled(
+                format!("{}", get_total_sockets_unique_count(app)),
+                Style::default()
+                    .fg(Color::LightYellow)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::from(" | TCP "),
+            Span::styled(
+                format!(
+                    "{}",
+                    get_total_sockets_protocol_count(app, ProtocolFlags::TCP)
+                ),
+                Style::default()
+                    .fg(Color::LightYellow)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::from(" | UDP "),
+            Span::styled(
+                format!(
+                    "{}",
+                    get_total_sockets_protocol_count(app, ProtocolFlags::UDP)
+                ),
+                Style::default()
+                    .fg(Color::LightYellow)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::from(" | Established "),
+            Span::styled(
+                format!(
+                    "{}",
+                    get_total_sockets_state_count(app, netstat2::TcpState::Established)
+                ),
+                Style::default()
+                    .fg(Color::LightYellow)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::from(" | Listening "),
+            Span::styled(
+                format!(
+                    "{}",
+                    get_total_sockets_state_count(app, netstat2::TcpState::Listen)
+                ),
+                Style::default()
+                    .fg(Color::LightYellow)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::from(" | IPv4 "),
+            Span::styled(
+                format!("{}", get_total_sockets_ip_count(app, AddressFamily::IPv4)),
+                Style::default()
+                    .fg(Color::LightYellow)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::from(" | IPv6 "),
+            Span::styled(
+                format!("{}", get_total_sockets_ip_count(app, AddressFamily::IPv6)),
+                Style::default()
+                    .fg(Color::LightYellow)
+                    .add_modifier(Modifier::BOLD),
+            ),
+        ]),
+    ];
+
+    let text_box = Paragraph::new(text).wrap(Wrap { trim: true }).block(
+        Block::default().borders(Borders::NONE).title(Span::styled(
+            "nets",
+            Style::default().add_modifier(Modifier::BOLD),
+        )),
+    );
+
+    f.render_widget(text_box, chunks[0]);
+    draw_help(f, app, chunks[1]);
+}
+
+fn draw_help<B>(f: &mut Frame<B>, app: &mut App, area: Rect)
+where
+    B: Backend,
+{
     let msg = match app.filter.mode {
         FilterMode::Normal => {
             vec![
                 Spans::from(Span::styled(format!("/ - type filter\n"), Style::default())),
                 Spans::from(Span::styled(
-                    format!("i - show/hide information chart on connection\n"),
-                    Style::default(),
-                )),
-                Spans::from(Span::styled(
                     format!("c - clear filter\n"),
                     Style::default(),
                 )),
                 Spans::from(Span::styled(
-                    format!("↑/↓ | j/k - toggle connections\n"),
+                    format!("i - show/hide information chart on connection\n"),
                     Style::default(),
                 )),
                 Spans::from(Span::styled(
-                    format!("←/→ | h/l - switch protocols\n"),
+                    format!("p - pause on current connection list\n"),
                     Style::default(),
                 )),
                 Spans::from(Span::styled(format!("{} - exit\n", "q"), Style::default())),
+                Spans::from(Span::styled(
+                    format!("↑/↓ | j/k | ←/→ | h/l - move\n"),
+                    Style::default(),
+                )),
             ]
         }
         FilterMode::Typing => vec![
@@ -102,7 +201,7 @@ where
             )),
     );
 
-    f.render_widget(help_message, chunks[1]);
+    f.render_widget(help_message, area);
 }
 
 fn draw_filter_field<B>(f: &mut Frame<B>, app: &mut App, area: Rect)

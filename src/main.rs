@@ -1,6 +1,7 @@
 mod app;
 mod os;
 mod ui;
+mod utils;
 
 use app::{App, FilterMode};
 
