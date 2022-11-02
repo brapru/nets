@@ -87,7 +87,7 @@ where
             Span::styled(
                 format!("{}", get_total_sockets_unique_count(app)),
                 Style::default()
-                    .fg(Color::LightYellow)
+                    .fg(Color::Yellow)
                     .add_modifier(Modifier::BOLD),
             ),
             Span::from(" | TCP "),
@@ -97,7 +97,7 @@ where
                     get_total_sockets_protocol_count(app, ProtocolFlags::TCP)
                 ),
                 Style::default()
-                    .fg(Color::LightYellow)
+                    .fg(Color::Yellow)
                     .add_modifier(Modifier::BOLD),
             ),
             Span::from(" | UDP "),
@@ -107,7 +107,7 @@ where
                     get_total_sockets_protocol_count(app, ProtocolFlags::UDP)
                 ),
                 Style::default()
-                    .fg(Color::LightYellow)
+                    .fg(Color::Yellow)
                     .add_modifier(Modifier::BOLD),
             ),
             Span::from(" | Established "),
@@ -117,7 +117,7 @@ where
                     get_total_sockets_state_count(app, netstat2::TcpState::Established)
                 ),
                 Style::default()
-                    .fg(Color::LightYellow)
+                    .fg(Color::Yellow)
                     .add_modifier(Modifier::BOLD),
             ),
             Span::from(" | Listening "),
@@ -127,21 +127,21 @@ where
                     get_total_sockets_state_count(app, netstat2::TcpState::Listen)
                 ),
                 Style::default()
-                    .fg(Color::LightYellow)
+                    .fg(Color::Yellow)
                     .add_modifier(Modifier::BOLD),
             ),
             Span::from(" | IPv4 "),
             Span::styled(
                 format!("{}", get_total_sockets_ip_count(app, AddressFamily::IPv4)),
                 Style::default()
-                    .fg(Color::LightYellow)
+                    .fg(Color::Yellow)
                     .add_modifier(Modifier::BOLD),
             ),
             Span::from(" | IPv6 "),
             Span::styled(
                 format!("{}", get_total_sockets_ip_count(app, AddressFamily::IPv6)),
                 Style::default()
-                    .fg(Color::LightYellow)
+                    .fg(Color::Yellow)
                     .add_modifier(Modifier::BOLD),
             ),
         ]),
