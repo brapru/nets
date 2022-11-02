@@ -6,7 +6,7 @@ use tui::layout::Alignment;
 use tui::{
     style::{Color, Modifier, Style},
     text::{Span, Spans, Text},
-    widgets::{Block, Borders, Cell, List, ListItem, Paragraph, Row, Table, Tabs},
+    widgets::{Block, Borders, Cell, List, ListItem, Paragraph, Row, Table, Tabs, Wrap},
     Frame,
 };
 
@@ -40,7 +40,7 @@ pub fn draw_ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
         .direction(Direction::Vertical)
         .constraints(
             [
-                Constraint::Length(6),
+                Constraint::Length(9),
                 Constraint::Length(3),
                 Constraint::Percentage(100),
             ]
@@ -57,33 +57,52 @@ fn draw_help<B>(f: &mut Frame<B>, app: &mut App, area: Rect)
 where
     B: Backend,
 {
-    let (msg, style) = match app.filter.mode {
-        FilterMode::Normal => (
-            vec![
-                Span::raw("Press "),
-                Span::styled("q", Style::default().add_modifier(Modifier::BOLD)),
-                Span::raw(" to exit, "),
-                Span::styled("/", Style::default().add_modifier(Modifier::BOLD)),
-                Span::raw(" to search on regex"),
-            ],
-            Style::default().add_modifier(Modifier::RAPID_BLINK),
-        ),
-        FilterMode::Typing => (
-            vec![
-                Span::raw("Press "),
-                Span::styled("Esc", Style::default().add_modifier(Modifier::BOLD)),
-                Span::raw(" to stop editing, "),
-                Span::styled("Enter", Style::default().add_modifier(Modifier::BOLD)),
-                Span::raw(" to record the message"),
-            ],
-            Style::default(),
-        ),
-    };
-    let mut text = Text::from(Spans::from(msg));
-    text.patch_style(style);
-    let help_message = Paragraph::new(text);
+    let chunks = Layout::default()
+        .constraints([Constraint::Percentage(75), Constraint::Percentage(25)])
+        .margin(1)
+        .direction(Direction::Horizontal)
+        .split(area);
 
-    f.render_widget(help_message, area);
+    let msg = match app.filter.mode {
+        FilterMode::Normal => {
+            vec![
+                Spans::from(Span::styled(format!("/ - type filter\n"), Style::default())),
+                Spans::from(Span::styled(
+                    format!("i - show/hide information chart on connection\n"),
+                    Style::default(),
+                )),
+                Spans::from(Span::styled(
+                    format!("c - clear filter\n"),
+                    Style::default(),
+                )),
+                Spans::from(Span::styled(
+                    format!("↑/↓ | j/k - toggle connections\n"),
+                    Style::default(),
+                )),
+                Spans::from(Span::styled(
+                    format!("←/→ | h/l - switch protocols\n"),
+                    Style::default(),
+                )),
+                Spans::from(Span::styled(format!("{} - exit\n", "q"), Style::default())),
+            ]
+        }
+        FilterMode::Typing => vec![
+            Spans::from(Span::styled("\nEnter - apply filter", Style::default())),
+            Spans::from(Span::styled("\nEsc - return", Style::default())),
+        ],
+    };
+
+    let help_message = Paragraph::new(msg).wrap(Wrap { trim: true }).block(
+        Block::default()
+            .title_alignment(Alignment::Center)
+            .borders(Borders::NONE)
+            .title(Span::styled(
+                "Help",
+                Style::default().add_modifier(Modifier::BOLD),
+            )),
+    );
+
+    f.render_widget(help_message, chunks[1]);
 }
 
 fn draw_filter_field<B>(f: &mut Frame<B>, app: &mut App, area: Rect)
