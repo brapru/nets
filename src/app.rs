@@ -265,6 +265,10 @@ impl App {
             '/' => {
                 self.filter.mode = FilterMode::Typing;
             }
+            'c' => {
+                self.filter.input.clear();
+                self.update_regex();
+            }
             'h' => {
                 self.on_left();
             }
