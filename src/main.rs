@@ -51,6 +51,7 @@ async fn try_main(
                 match app.filter.mode {
                     FilterMode::Normal => match key.code {
                         KeyCode::Char('q') => app.should_quit = true,
+                        KeyCode::Char('?') => app.on_show_help(),
                         KeyCode::Char('p') => app.on_pause(),
                         KeyCode::Char(c) => app.on_key(c),
                         KeyCode::Up => app.on_up(),

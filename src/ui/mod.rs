@@ -6,6 +6,7 @@ use super::app::ITEMS;
 
 use netstat2::ProtocolFlags;
 use tui::layout::Alignment;
+use tui::text::Text;
 use tui::{
     style::{Color, Modifier, Style},
     text::{Span, Spans},
@@ -162,7 +163,7 @@ fn draw_help<B>(f: &mut Frame<B>, app: &mut App, area: Rect)
 where
     B: Backend,
 {
-    let msg = match app.filter.mode {
+    let mut msg = match app.filter.mode {
         FilterMode::Normal => {
             vec![
                 Spans::from(Span::styled(format!("/ - type filter\n"), Style::default())),
@@ -191,12 +192,16 @@ where
         ],
     };
 
+    if !app.show_help {
+        msg = vec![Spans::from(Span::from(""))];
+    }
+
     let help_message = Paragraph::new(msg).wrap(Wrap { trim: true }).block(
         Block::default()
             .title_alignment(Alignment::Center)
             .borders(Borders::NONE)
             .title(Span::styled(
-                "Help",
+                "Help (?)",
                 Style::default().add_modifier(Modifier::BOLD),
             )),
     );

@@ -158,6 +158,7 @@ pub struct FilterField {
 pub struct App {
     pub should_quit: bool,
     pub show_connection_info: bool,
+    pub show_help: bool,
     pub filter: FilterField,
     pub tabs: StatefulTabs,
     pub connections: Vec<SocketInfoWithProcName>,
@@ -175,6 +176,7 @@ impl App {
         App {
             should_quit: false,
             show_connection_info: false,
+            show_help: false,
             is_paused: false,
             filter: FilterField {
                 input: String::new(),
@@ -242,6 +244,10 @@ impl App {
 
     pub fn on_pause(&mut self) {
         self.is_paused = !self.is_paused;
+    }
+
+    pub fn on_show_help(&mut self) {
+        self.show_help = !self.show_help;
     }
 
     pub fn on_up(&mut self) {
