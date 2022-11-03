@@ -44,7 +44,7 @@ pub fn draw_ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
         .direction(Direction::Vertical)
         .constraints(
             [
-                Constraint::Length(9),
+                Constraint::Length(3),
                 Constraint::Length(3),
                 Constraint::Percentage(100),
             ]
@@ -63,14 +63,11 @@ where
 {
     let chunks = Layout::default()
         .constraints([Constraint::Percentage(75), Constraint::Percentage(25)])
-        .margin(1)
         .direction(Direction::Horizontal)
         .split(area);
 
     let text: Vec<Spans> = vec![
         // FIXME: There has to be a better way to get new lines printed
-        Spans::from(Span::styled(format!(""), Style::default())),
-        Spans::from(Span::styled(format!(""), Style::default())),
         Spans::from(Span::styled(format!(""), Style::default())),
         Spans::from(vec![
             Span::styled("Total ", Style::default().add_modifier(Modifier::BOLD)),
