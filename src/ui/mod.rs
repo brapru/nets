@@ -6,7 +6,6 @@ use super::app::ITEMS;
 
 use netstat2::ProtocolFlags;
 use tui::layout::Alignment;
-use tui::text::Text;
 use tui::{
     style::{Color, Modifier, Style},
     text::{Span, Spans},
