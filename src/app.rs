@@ -112,6 +112,10 @@ impl StatefulTable {
         self.state.select(Some(i));
     }
 
+    pub fn first(&mut self) {
+        self.state.select(Some(0));
+    }
+
     pub fn last(&mut self) {
         self.state.select(Some(self.items.len() - 1));
     }
@@ -260,6 +264,10 @@ impl App {
 
     pub fn on_down(&mut self) {
         self.connection_table.next();
+    }
+
+    pub fn on_first(&mut self) {
+        self.connection_table.first();
     }
 
     pub fn on_last(&mut self) {
