@@ -111,6 +111,10 @@ impl StatefulTable {
         };
         self.state.select(Some(i));
     }
+
+    pub fn last(&mut self) {
+        self.state.select(Some(self.items.len() - 1));
+    }
 }
 
 pub struct StatefulTabItem {
@@ -258,6 +262,10 @@ impl App {
         self.connection_table.next();
     }
 
+    pub fn on_last(&mut self) {
+        self.connection_table.last();
+    }
+
     pub fn on_left(&mut self) {
         self.tabs.previous();
     }
@@ -274,6 +282,9 @@ impl App {
             'c' => {
                 self.filter.input.clear();
                 self.update_regex();
+            }
+            'G' => {
+                self.on_last();
             }
             'h' => {
                 self.on_left();
