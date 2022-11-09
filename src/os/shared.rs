@@ -26,15 +26,12 @@ pub fn get_all_socket_info(
     let sockets_info = get_sockets_info(af_flags, protocol)?;
 
     for mut si in sockets_info {
-        open_sockets.push(SocketInfoWithProcName::new(
-            si.clone(),
-            {
-                match si.associated_pids.pop() {
-                    Some(pid) => get_proc_name(pid),
-                    _ => "-".to_string()
-                }
+        open_sockets.push(SocketInfoWithProcName::new(si.clone(), {
+            match si.associated_pids.pop() {
+                Some(pid) => get_proc_name(pid),
+                _ => "-".to_string(),
             }
-        ));
+        }));
     }
 
     Ok(open_sockets)

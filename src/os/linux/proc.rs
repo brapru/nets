@@ -22,7 +22,7 @@ pub fn get_os_proc_name(pid: c_int) -> Result<String, String> {
         if this_one.pid == pid {
             if let Ok(stat) = this_one.stat() {
                 return Ok(stat.comm);
-            }    
+            }
         }
     }
 
