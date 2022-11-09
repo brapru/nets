@@ -1,0 +1,64 @@
+name: Build, lint, and test
+
+on:
+  pull_request:
+  push:
+    branches: main
+
+jobs:
+  build_and_test_nets:
+    env:
+      RUST_BACKTRACE: 1
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        build:
+          - stable
+          - macos
+        include:
+          - build: stable
+            os: ubuntu-latest
+            rust: stable
+          - build: macos
+            os: macos-latest
+            rust: stable
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          profile: minimal
+          override: true
+          components: rustfmt, clippy
+
+      - name: Lint via cargo fmt
+        run: cargo fmt --all -- --check
+
+      - name: Check clippy warnings
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Build nets
+        run: cargo build --verbose
+
+      - name: Show build.rs stderr
+        shell: bash
+        run: |
+          set +x
+          stderr="$(find "./target/debug" -name stderr -print0 | xargs -0 ls -t | head -n1)"
+          if [ -s "$stderr" ]; then
+            cat "$stderr"
+          fi
+          set -x
+
+      - name: Test
+        run: cargo test --verbose
+
+      - name: Upload unix binary
+        uses: actions/upload-artifact@v1
+        with:
+          name: ${{ matrix.os }}-${{ matrix.rust }}
+          path: target/debug/bandwhich
