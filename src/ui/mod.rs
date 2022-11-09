@@ -351,7 +351,7 @@ where
     f.render_stateful_widget(table, area, &mut app.connection_table.state);
 }
 
-fn draw_connection_info_table<B>(f: &mut Frame<B>, app: &mut App, area: Rect)
+fn draw_connection_info_table<B>(f: &mut Frame<B>, _app: &mut App, area: Rect)
 where
     B: Backend,
 {
