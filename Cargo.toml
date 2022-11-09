@@ -9,8 +9,10 @@ edition = "2021"
 crossterm = "0.25"
 itertools = "0.10.5"
 netstat2 = "0.9"
-procfs = "0.14.1"
 regex = "1"
 tokio = { version = "1.12.0", features = ["full"] }
 tui = "0.19"
 unicode-width = "0.1"
+
+[target.'cfg(target_os="linux")'.dependencies]
+procfs = "0.14.1"
