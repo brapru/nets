@@ -5,11 +5,12 @@ A cross-platform network connection tui.
 More to come!
 
 ## TODO
+- [ ] Start actually testing this thing
 - [ ] Complete and draw the connection information box
 - [ ] Add highlighting for filtering match
-- [ ] Add Linux support
 - [ ] Add Windows support
 
+- [x] Add Linux support
 - [x] Add general statistics at the top (e.g. overall connection count)
 - [x] Draw the help box
 - [x] Add a filtering status that shows status/results of the regex query and the status of information query
