@@ -1,5 +1,4 @@
 use std::os::raw::c_int;
-// use procfs::process::all_processes;
 
 use std::{error::Error, fmt};
 
@@ -15,16 +14,10 @@ impl fmt::Display for ProcNameFail {
 }
 
 pub fn get_os_proc_name(pid: c_int) -> Result<String, String> {
-    // FIXME: We already know the pid, and all we need is /proc/pid/comm so this
-    // adds unnecessary overhead by iterating through all_processes
-    for process in procfs::process::all_processes().unwrap() {
-        let this_one = process.unwrap();
-        if this_one.pid == pid {
-            if let Ok(stat) = this_one.stat() {
-                return Ok(stat.comm);
-            }
-        }
-    }
+    let process = procfs::process::Process::new(pid).unwrap();
 
-    Err(ProcNameFail.to_string())
+    match process.stat() {
+        Ok(stat) => Ok(stat.comm),
+        _ => Err(ProcNameFail.to_string()),
+    }
 }
