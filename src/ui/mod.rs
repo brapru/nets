@@ -67,14 +67,14 @@ where
 
     let text: Vec<Spans> = vec![
         // FIXME: There has to be a better way to get new lines printed
-        Spans::from(Span::styled(format!(""), Style::default())),
+        Spans::from(Span::styled(String::new(), Style::default())),
         Spans::from(vec![
             Span::styled("Total ", Style::default().add_modifier(Modifier::BOLD)),
             Span::from("Connections "),
             Span::styled(
                 format!(
                     "{}",
-                    get_total_sockets_protocol_count(&app, ProtocolFlags::TCP | ProtocolFlags::UDP)
+                    get_total_sockets_protocol_count(app, ProtocolFlags::TCP | ProtocolFlags::UDP)
                 ),
                 Style::default()
                     .fg(Color::Green)
@@ -162,22 +162,25 @@ where
     let mut msg = match app.filter.mode {
         FilterMode::Normal => {
             vec![
-                Spans::from(Span::styled(format!("/ - type filter\n"), Style::default())),
                 Spans::from(Span::styled(
-                    format!("c - clear filter\n"),
+                    "/ - type filter\n".to_string(),
                     Style::default(),
                 )),
                 Spans::from(Span::styled(
-                    format!("i - show/hide information chart on connection\n"),
+                    "c - clear filter\n".to_string(),
                     Style::default(),
                 )),
                 Spans::from(Span::styled(
-                    format!("p - pause on current connection list\n"),
+                    "i - show/hide information chart on connection\n".to_string(),
+                    Style::default(),
+                )),
+                Spans::from(Span::styled(
+                    "p - pause on current connection list\n".to_string(),
                     Style::default(),
                 )),
                 Spans::from(Span::styled(format!("{} - exit\n", "q"), Style::default())),
                 Spans::from(Span::styled(
-                    format!("↑/↓ | j/k | ←/→ | h/l - move\n"),
+                    "↑/↓ | j/k | ←/→ | h/l - move\n".to_string(),
                     Style::default(),
                 )),
             ]
@@ -382,7 +385,7 @@ where
 
     let mut info: Vec<Span> = vec![Span::from("Waiting")];
 
-    if !app.filter.regex.is_none() {
+    if app.filter.regex.is_some() {
         if app.connection_table.items.is_empty() {
             // info = Span::styled("No Matches Found", Style::default().fg(Color::Red));
             info = vec![Span::styled("No Matches", Style::default().fg(Color::Red))];

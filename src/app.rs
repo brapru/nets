@@ -39,7 +39,7 @@ impl SocketInfoWithProcName {
                         Some(pid) => pid.to_string(),
                         _ => "-".to_string(),
                     },
-                    name.clone(),
+                    name,
                 ],
             },
             ProtocolSocketInfo::Udp(udp_si) => SocketInfoWithProcName {
@@ -60,7 +60,7 @@ impl SocketInfoWithProcName {
                         Some(pid) => pid.to_string(),
                         _ => "-".to_string(),
                     },
-                    name.clone(),
+                    name,
                 ],
             },
         }
@@ -137,7 +137,7 @@ pub struct StatefulTabs {
     pub index: usize,
 }
 
-impl<'a> StatefulTabs {
+impl StatefulTabs {
     pub fn with_items(items: Vec<StatefulTabItem>) -> StatefulTabs {
         StatefulTabs { items, index: 0 }
     }
