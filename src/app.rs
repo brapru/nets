@@ -35,7 +35,10 @@ impl SocketInfoWithProcName {
                     tcp_si.remote_addr.to_string(),
                     tcp_si.remote_port.to_string(),
                     tcp_si.state.to_string(),
-                    info.associated_pids.clone().pop().unwrap().to_string(),
+                    match info.clone().associated_pids.pop() {
+                        Some(pid) => pid.to_string(),
+                        _ => "-".to_string(),
+                    },
                     name.clone(),
                 ],
             },
@@ -53,7 +56,10 @@ impl SocketInfoWithProcName {
                     String::from(""),
                     String::from(""),
                     String::from(""),
-                    info.associated_pids.clone().pop().unwrap().to_string(),
+                    match info.clone().associated_pids.pop() {
+                        Some(pid) => pid.to_string(),
+                        _ => "-".to_string(),
+                    },
                     name.clone(),
                 ],
             },

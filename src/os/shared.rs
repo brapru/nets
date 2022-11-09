@@ -24,7 +24,12 @@ pub fn get_all_socket_info(
     for mut si in sockets_info {
         open_sockets.push(SocketInfoWithProcName::new(
             si.clone(),
-            get_proc_name(si.associated_pids.pop().unwrap()),
+            {
+                match si.associated_pids.pop() {
+                    Some(pid) => get_proc_name(pid),
+                    _ => "-".to_string()
+                }
+            }
         ));
     }
 
