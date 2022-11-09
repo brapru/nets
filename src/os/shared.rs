@@ -3,6 +3,9 @@ use crate::app::SocketInfoWithProcName;
 #[cfg(any(target_os = "macos"))]
 use crate::os::macos::libproc::*;
 
+#[cfg(any(target_os = "linux"))]
+use crate::os::linux::proc::*;
+
 use netstat2::{get_sockets_info, AddressFamilyFlags, ProtocolFlags};
 
 pub fn get_proc_name(pid: u32) -> String {
@@ -13,6 +16,7 @@ pub fn get_proc_name(pid: u32) -> String {
         Err(_) => String::from("-"),
     }
 }
+
 pub fn get_all_socket_info(
     protocol: ProtocolFlags,
 ) -> Result<Vec<SocketInfoWithProcName>, Box<dyn std::error::Error>> {
