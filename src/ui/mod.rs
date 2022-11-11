@@ -152,60 +152,16 @@ where
     );
 
     f.render_widget(text_box, chunks[0]);
-    draw_help(f, app, chunks[1]);
-}
 
-fn draw_help<B>(f: &mut Frame<B>, app: &mut App, area: Rect)
-where
-    B: Backend,
-{
-    let mut msg = match app.filter.mode {
-        FilterMode::Normal => {
-            vec![
-                Spans::from(Span::styled(
-                    "/ - type filter\n".to_string(),
-                    Style::default(),
-                )),
-                Spans::from(Span::styled(
-                    "c - clear filter\n".to_string(),
-                    Style::default(),
-                )),
-                Spans::from(Span::styled(
-                    "i - show/hide information chart on connection\n".to_string(),
-                    Style::default(),
-                )),
-                Spans::from(Span::styled(
-                    "p - pause on current connection list\n".to_string(),
-                    Style::default(),
-                )),
-                Spans::from(Span::styled(format!("{} - exit\n", "q"), Style::default())),
-                Spans::from(Span::styled(
-                    "↑/↓ | j/k | ←/→ | h/l - move\n".to_string(),
-                    Style::default(),
-                )),
-            ]
-        }
-        FilterMode::Typing => vec![
-            Spans::from(Span::styled("\nEnter - apply filter", Style::default())),
-            Spans::from(Span::styled("\nEsc - return", Style::default())),
-        ],
-    };
+    let help_title = Block::default()
+        .title_alignment(Alignment::Center)
+        .borders(Borders::NONE)
+        .title(Span::styled(
+            "Help (?)",
+            Style::default().add_modifier(Modifier::BOLD),
+        ));
 
-    if !app.show_help {
-        msg = vec![Spans::from(Span::from(""))];
-    }
-
-    let help_message = Paragraph::new(msg).wrap(Wrap { trim: true }).block(
-        Block::default()
-            .title_alignment(Alignment::Center)
-            .borders(Borders::NONE)
-            .title(Span::styled(
-                "Help (?)",
-                Style::default().add_modifier(Modifier::BOLD),
-            )),
-    );
-
-    f.render_widget(help_message, area);
+    f.render_widget(help_title, chunks[1]);
 }
 
 fn draw_filter_field<B>(f: &mut Frame<B>, app: &mut App, area: Rect)
@@ -260,7 +216,7 @@ fn draw_connections<B>(f: &mut Frame<B>, app: &mut App, area: Rect)
 where
     B: Backend,
 {
-    let constraints = if app.show_connection_info {
+    let constraints = if app.show_connection_info || app.show_help {
         vec![Constraint::Percentage(75), Constraint::Percentage(25)]
     } else {
         vec![Constraint::Percentage(100)]
@@ -273,9 +229,165 @@ where
 
     draw_connection_table(f, app, chunks[0]);
 
-    if app.show_connection_info {
+    // If the help menu is selected, this gets priority over the information table
+    if app.show_help {
+        draw_help(f, app, chunks[1])
+    }
+
+    if !app.show_help && app.show_connection_info {
         draw_connection_info_table(f, app, chunks[1]);
     }
+}
+
+fn draw_help<B>(f: &mut Frame<B>, app: &mut App, area: Rect)
+where
+    B: Backend,
+{
+    let msg = match app.filter.mode {
+        FilterMode::Normal => {
+            vec![
+                Spans::from(Span::styled(String::new(), Style::default())),
+                Spans::from(vec![
+                    Span::styled(
+                        "/ ".to_string(),
+                        Style::default()
+                            .fg(Color::Yellow)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    Span::styled(
+                        "- Type string and search based on filter\n".to_string(),
+                        Style::default(),
+                    ),
+                ]),
+                Spans::from(Span::styled(String::new(), Style::default())),
+                Spans::from(vec![
+                    Span::styled(
+                        "c ".to_string(),
+                        Style::default()
+                            .fg(Color::Yellow)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    Span::styled("- Clear the current filter\n".to_string(), Style::default()),
+                ]),
+                Spans::from(Span::styled(String::new(), Style::default())),
+                Spans::from(vec![
+                    Span::styled(
+                        "i ".to_string(),
+                        Style::default()
+                            .fg(Color::Yellow)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    Span::styled(
+                        "- Show/hide information chart\n".to_string(),
+                        Style::default(),
+                    ),
+                ]),
+                Spans::from(Span::styled(String::new(), Style::default())),
+                Spans::from(vec![
+                    Span::styled(
+                        "p ".to_string(),
+                        Style::default()
+                            .fg(Color::Yellow)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    Span::styled(
+                        "- Pause on current connection list\n".to_string(),
+                        Style::default(),
+                    ),
+                ]),
+                Spans::from(Span::styled(String::new(), Style::default())),
+                Spans::from(vec![
+                    Span::styled(
+                        "↑/↓ | j/k  ".to_string(),
+                        Style::default()
+                            .fg(Color::Yellow)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    Span::styled(
+                        "- Move up and down to scroll through connection list\n".to_string(),
+                        Style::default(),
+                    ),
+                ]),
+                Spans::from(Span::styled(String::new(), Style::default())),
+                Spans::from(vec![
+                    Span::styled(
+                        "←/→ | h/l  ".to_string(),
+                        Style::default()
+                            .fg(Color::Yellow)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    Span::styled(
+                        "- Move left and right to scroll through the All, TCP, and UDP tabs\n"
+                            .to_string(),
+                        Style::default(),
+                    ),
+                ]),
+                Spans::from(Span::styled(String::new(), Style::default())),
+                Spans::from(vec![
+                    Span::styled(
+                        "gg ".to_string(),
+                        Style::default()
+                            .fg(Color::Yellow)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    Span::styled(
+                        "- Jump to the top of the connection list\n".to_string(),
+                        Style::default(),
+                    ),
+                ]),
+                Spans::from(Span::styled(String::new(), Style::default())),
+                Spans::from(vec![
+                    Span::styled(
+                        "Shift+G ".to_string(),
+                        Style::default()
+                            .fg(Color::Yellow)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    Span::styled(
+                        "- Jump to the bottom of the connection list\n".to_string(),
+                        Style::default(),
+                    ),
+                ]),
+                Spans::from(Span::styled(String::new(), Style::default())),
+                Spans::from(vec![
+                    Span::styled(
+                        "q ".to_string(),
+                        Style::default()
+                            .fg(Color::Yellow)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    Span::styled(
+                        "- Exit and quit the program\n".to_string(),
+                        Style::default(),
+                    ),
+                ]),
+            ]
+        }
+        FilterMode::Typing => vec![
+            Spans::from(Span::styled(String::new(), Style::default())),
+            Spans::from(Span::styled(
+                "Press ENTER to apply the filter while in typing mode\n".to_string(),
+                Style::default(),
+            )),
+            Spans::from(Span::styled(String::new(), Style::default())),
+            Spans::from(Span::styled(
+                "Press ESC to return\n".to_string(),
+                Style::default(),
+            )),
+        ],
+    };
+
+    let help_message = Paragraph::new(msg).wrap(Wrap { trim: true }).block(
+        Block::default()
+            .title_alignment(Alignment::Center)
+            .borders(Borders::ALL)
+            .title(Span::styled(
+                "Help",
+                Style::default().add_modifier(Modifier::BOLD),
+            )),
+    );
+
+    f.render_widget(help_message, area);
 }
 
 fn draw_connection_table<B>(f: &mut Frame<B>, app: &mut App, area: Rect)
