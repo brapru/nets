@@ -1,81 +1,14 @@
-use netstat2::{ProtocolFlags, ProtocolSocketInfo, SocketInfo};
+use netstat2::ProtocolFlags;
 use regex::Regex;
 use tui::widgets::TableState;
 
-use crate::os::get_all_socket_info;
+use crate::os::{get_all_socket_info, SocketInfoWithProcName};
 
 pub const ITEMS: [&str; 24] = [
     "Item1", "Item2", "Item3", "Item4", "Item5", "Item6", "Item7", "Item8", "Item9", "Item10",
     "Item11", "Item12", "Item13", "Item14", "Item15", "Item16", "Item17", "Item18", "Item19",
     "Item20", "Item21", "Item22", "Item23", "Item24",
 ];
-
-#[derive(Clone)]
-pub struct SocketInfoWithProcName {
-    pub info: SocketInfo,
-    pub process_name: String,
-    pub printable_string: Vec<String>,
-    pub protocol_flags: ProtocolFlags,
-}
-
-impl SocketInfoWithProcName {
-    pub fn new(info: SocketInfo, name: String) -> SocketInfoWithProcName {
-        match &info.protocol_socket_info {
-            ProtocolSocketInfo::Tcp(tcp_si) => SocketInfoWithProcName {
-                protocol_flags: ProtocolFlags::TCP,
-                info: info.clone(),
-                process_name: name.clone(),
-                printable_string: vec![
-                    match tcp_si.local_addr.is_ipv4() {
-                        true => String::from("tcp4"),
-                        _ => String::from("tcp6"),
-                    },
-                    tcp_si.local_addr.to_string(),
-                    tcp_si.local_port.to_string(),
-                    tcp_si.remote_addr.to_string(),
-                    tcp_si.remote_port.to_string(),
-                    tcp_si.state.to_string(),
-                    match info.clone().associated_pids.pop() {
-                        Some(pid) => pid.to_string(),
-                        _ => "-".to_string(),
-                    },
-                    name,
-                ],
-            },
-            ProtocolSocketInfo::Udp(udp_si) => SocketInfoWithProcName {
-                protocol_flags: ProtocolFlags::UDP,
-                info: info.clone(),
-                process_name: name.clone(),
-                printable_string: vec![
-                    match udp_si.local_addr.is_ipv4() {
-                        true => String::from("udp4"),
-                        _ => String::from("udp6"),
-                    },
-                    udp_si.local_addr.to_string(),
-                    udp_si.local_port.to_string(),
-                    String::from(""),
-                    String::from(""),
-                    String::from(""),
-                    match info.clone().associated_pids.pop() {
-                        Some(pid) => pid.to_string(),
-                        _ => "-".to_string(),
-                    },
-                    name,
-                ],
-            },
-        }
-    }
-
-    pub fn should_print(&self, regex: &Option<Regex>) -> bool {
-        if regex.is_none() {
-            return true;
-        }
-
-        self.printable_string
-            .iter()
-            .any(|cell| regex.as_ref().unwrap().is_match(cell))
-    }
-}
 
 pub struct StatefulTable {
     pub state: TableState,
