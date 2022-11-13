@@ -229,13 +229,33 @@ where
 
     draw_connection_table(f, app, chunks[0]);
 
-    // If the help menu is selected, this gets priority over the information table
-    if app.show_help {
-        draw_help(f, app, chunks[1])
+    if app.show_help || app.show_connection_info {
+        draw_connection_info(f, app, chunks[1])
     }
+}
 
-    if !app.show_help && app.show_connection_info {
-        draw_connection_info_table(f, app, chunks[1]);
+fn draw_connection_info<B>(f: &mut Frame<B>, app: &mut App, area: Rect)
+where
+    B: Backend,
+{
+    let constraints = if app.show_connection_info && app.show_help {
+        vec![Constraint::Percentage(50), Constraint::Percentage(50)]
+    } else {
+        vec![Constraint::Percentage(100)]
+    };
+
+    let chunks = Layout::default()
+        .constraints(constraints.as_ref())
+        .direction(Direction::Vertical)
+        .split(area);
+
+    if app.show_help && app.show_connection_info {
+        draw_connection_info_table(f, app, chunks[0]);
+        draw_help(f, app, chunks[1]);
+    } else if app.show_connection_info {
+        draw_connection_info_table(f, app, chunks[0]);
+    } else if app.show_help {
+        draw_help(f, app, chunks[0])
     }
 }
 
