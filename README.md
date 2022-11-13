@@ -9,6 +9,7 @@ More to come!
 - [ ] Complete and draw the connection information box
 - [ ] Add highlighting for filtering match
 - [ ] Add Windows support
+- [ ] Fix the Mouse event actions
 
 - [x] Add Linux support
 - [x] Add general statistics at the top (e.g. overall connection count)
