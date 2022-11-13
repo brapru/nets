@@ -7,7 +7,6 @@ More to come!
 ## TODO
 - [ ] Start actually testing this thing
 - [ ] Complete and draw the connection information box
-- [ ] Add highlighting for filtering match
 - [ ] Add Windows support
 - [ ] Fix the Mouse event actions
 
