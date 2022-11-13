@@ -19,7 +19,7 @@ use tui::{backend::CrosstermBackend, Terminal};
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // FIXME: Add cli arguments to take a tick rate
-    let tick_rate = Duration::from_millis(250);
+    let tick_rate = Duration::from_millis(500);
 
     let app = Arc::new(Mutex::new(App::new()));
 
