@@ -529,7 +529,6 @@ where
 
     if app.filter.regex.is_some() {
         if app.connection_table.items.is_empty() {
-            // info = Span::styled("No Matches Found", Style::default().fg(Color::Red));
             info = vec![Span::styled("No Matches", Style::default().fg(Color::Red))];
         } else {
             info = vec![
