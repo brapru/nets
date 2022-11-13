@@ -371,6 +371,16 @@ where
                 Spans::from(Span::styled(String::new(), Style::default())),
                 Spans::from(vec![
                     Span::styled(
+                        "? ".to_string(),
+                        Style::default()
+                            .fg(Color::Yellow)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    Span::styled("- Show/hide this help menu\n".to_string(), Style::default()),
+                ]),
+                Spans::from(Span::styled(String::new(), Style::default())),
+                Spans::from(vec![
+                    Span::styled(
                         "q ".to_string(),
                         Style::default()
                             .fg(Color::Yellow)
