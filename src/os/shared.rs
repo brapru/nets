@@ -3,10 +3,10 @@ use netstat2::{
 };
 use regex::Regex;
 
-#[cfg(any(target_os = "macos"))]
+#[cfg(target_os = "macos")]
 use crate::os::macos::libproc::*;
 
-#[cfg(any(target_os = "linux"))]
+#[cfg(target_os = "linux")]
 use crate::os::linux::proc::*;
 
 #[derive(Clone)]
